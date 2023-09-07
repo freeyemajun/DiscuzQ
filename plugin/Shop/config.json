@@ -1,0 +1,16 @@
+{
+    "name_cn":"商店商品",
+    "name_en":"shop",
+    "description":"帖子类型里添加商店商品的插件",
+    "type":1,
+    "app_id":"61540fef8f4de8",
+    "version":"v1.0.1",
+    "status":1,
+    "icon":"https:\/\/discuz.chat\/dzq-img\/active.png",
+    "filter_enable":true,
+    "author":{
+        "name":"腾讯科技（深圳）有限公司",
+        "email":"simongguo@tencent.com"
+    },
+    "busi":"\\Plugin\\Shop\\ShopBusi"
+}

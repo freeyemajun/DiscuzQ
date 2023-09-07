@@ -1,0 +1,100 @@
+<!DOCTYPE html><html lang="en"><head><meta name="screen-orientation" content="portrait"/><meta name="x5-orientation" content="portrait"/><script>
+              setTimeout(function() {
+                function remCalc (){
+                  var a = 375;
+                  if(/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+                    a=document.documentElement.clientWidth||document.body.clientWidth;
+                    if(a>750){a=750}else{if(a<320){a=320}}
+                  }
+                  document.documentElement.style.fontSize=(a/7.5)*2+"px";
+                };
+                remCalc();
+                window.addEventListener('resize', remCalc);
+              }, 0);
+          </script><meta charSet="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0, viewport-fit=cover"/><meta name="keywords" content="欢迎您"/><meta name="description" content="欢迎您"/><title>欢迎您</title><meta name="next-head-count" content="5"/><link rel="preload" href="/_next/static/css/styles~493df0b3.b86f2796.chunk.css" as="style" crossorigin="anonymous"/><link rel="stylesheet" href="/_next/static/css/styles~493df0b3.b86f2796.chunk.css" crossorigin="anonymous" data-n-g=""/><link rel="preload" href="/_next/static/css/styles~31ecd969.39c9ea6e.chunk.css" as="style" crossorigin="anonymous"/><link rel="stylesheet" href="/_next/static/css/styles~31ecd969.39c9ea6e.chunk.css" crossorigin="anonymous" data-n-g=""/><noscript data-n-css=""></noscript><link rel="preload" href="/_next/static/chunks/webpack-d12b14353ef5f55fa2b8.js" as="script" crossorigin="anonymous"/><link rel="preload" href="/_next/static/chunks/framework~f9ca8911.996a422a99e2948b0321.js" as="script" crossorigin="anonymous"/><link rel="preload" href="/_next/static/chunks/main~253ae210-e241e414b08aba9e1897.js" as="script" crossorigin="anonymous"/><link rel="preload" href="/_next/static/chunks/5092db98b25cd8cbd664fc04da2a3f97de44d9ea~493df0b3.130afa8b29b4196bb20e.js" as="script" crossorigin="anonymous"/><link rel="preload" href="/_next/static/chunks/styles~493df0b3.ba65ffc37b3e755e4199.js" as="script" crossorigin="anonymous"/><link rel="preload" href="/_next/static/chunks/styles~31ecd969.d4079fa765103cd0f880.js" as="script" crossorigin="anonymous"/><link rel="preload" href="/_next/static/chunks/pages/_app~493df0b3-a48d2e7d34f7d9401ed2.js" as="script" crossorigin="anonymous"/><link rel="preload" href="/_next/static/chunks/pages/join~493df0b3-b4b7f6cf252c73284f8c.js" as="script" crossorigin="anonymous"/></head><body><div id="__next"><div class="dzq-theme--light"></div></div><script>
+                var userAgent = navigator.userAgent; //取得浏览器的userAgent字符串
+                var isIE = userAgent.indexOf("compatible") > -1 && userAgent.indexOf("MSIE") > -1; //判断是否IE<11浏览器
+                var isIE11 = userAgent.indexOf('Trident') > -1 && userAgent.indexOf("rv:11.0") > -1;
+                if(isIE || isIE11) {
+                  document.body.innerHTML = '<style>html,body{width: 100%;height: 100%;display: block;}h1{padding: 20px;}h3{padding: 15px;}.box{text-align: center;margin-top: 40vh;}</style><div class="box"><h1>站点不支持IE浏览器！</h1><h3>请使用QQ浏览器、chrome，Edge等浏览器。</h3></div>';
+                }
+            </script><script id="__NEXT_DATA__" type="application/json" crossorigin="anonymous">{"props":{"pageProps":{"serverSite":{"platform":"static","closeSite":null,"webConfig":null},"serverUser":{}}},"page":"/join","query":{},"buildId":"9DQth-my29lr2llWoqJ_N","nextExport":true,"isFallback":false,"gip":true}</script><script crossorigin="anonymous" nomodule="" src="/_next/static/chunks/polyfills~a4403643-3667a57dc5b8c4248b55.js"></script><script src="/_next/static/chunks/webpack-d12b14353ef5f55fa2b8.js" async="" crossorigin="anonymous"></script><script src="/_next/static/chunks/framework~f9ca8911.996a422a99e2948b0321.js" async="" crossorigin="anonymous"></script><script src="/_next/static/chunks/main~253ae210-e241e414b08aba9e1897.js" async="" crossorigin="anonymous"></script><script src="/_next/static/chunks/5092db98b25cd8cbd664fc04da2a3f97de44d9ea~493df0b3.130afa8b29b4196bb20e.js" async="" crossorigin="anonymous"></script><script src="/_next/static/chunks/styles~493df0b3.ba65ffc37b3e755e4199.js" async="" crossorigin="anonymous"></script><script src="/_next/static/chunks/styles~31ecd969.d4079fa765103cd0f880.js" async="" crossorigin="anonymous"></script><script src="/_next/static/chunks/pages/_app~493df0b3-a48d2e7d34f7d9401ed2.js" async="" crossorigin="anonymous"></script><script src="/_next/static/chunks/pages/join~493df0b3-b4b7f6cf252c73284f8c.js" async="" crossorigin="anonymous"></script><script src="/_next/static/9DQth-my29lr2llWoqJ_N/_buildManifest.js" async="" crossorigin="anonymous"></script><script src="/_next/static/9DQth-my29lr2llWoqJ_N/_ssgManifest.js" async="" crossorigin="anonymous"></script></body><script>
+      setTimeout(function() {
+        var appid = '';
+        var channelname = window.location.hostname;
+        if (!!window.navigator.userAgent.match(/AppleWebKit.*Mobile.*/)) {
+          appid = '500D36509CE649E88446FB4E7A51B221'; // h5
+        } else {
+          appid = '4F323A1D5F444BF69C7C4E10704AEA2F'; // pc
+        }
+        var url = 'http://sdk.talkingdata.com/app/h5/v1?appid=' + appid + '&vn=' + 'v4.1.1-20230110' + '&vc=' + 'v4.1.1-20230110' + '&td_channelid=' + channelname;
+        if ( window.location.protocol.indexOf('https') != -1 ) {
+          url = 'https://jic.talkingdata.com/app/h5/v1?appid=' + appid + '&vn=' + 'v4.1.1-20230110' + '&vc=' + 'v4.1.1-20230110' + '&td_channelid=' + channelname;
+        }
+        var talkingdata = document.createElement('script');
+        talkingdata.type = 'text/javascript';
+        talkingdata.async = true;
+        talkingdata.src = url;
+        document.getElementsByTagName('body')[0].appendChild(talkingdata);
+
+
+        window.sessionStorage.setItem('__TD_td_channel', window.location.hostname.replace(/./g, '_'));
+        var tdjs = document.createElement('script');
+        tdjs.type = 'text/javascript';
+        tdjs.async = true;
+        tdjs.src = 'https://jic.talkingdata.com/app/h5/v1?appid=750AEE91CF4446A19A2D12D5EE32F725';
+        document.getElementsByTagName('body')[0].appendChild(tdjs);
+
+        var dzqjs = document.createElement('script');
+        dzqjs.type = 'text/javascript';
+        dzqjs.async = true;
+        dzqjs.src = '../dzq.js';
+        document.getElementsByTagName('body')[0].appendChild(dzqjs);
+      }, 2000);
+    </script><script>
+            // 微信设置字体最大，布局乱的补丁
+            function is_weixn() {
+              var ua = navigator.userAgent.toLowerCase();
+              return ua.match(/MicroMessenger/i) == "micromessenger";
+            }
+            if (is_weixn()) {
+              if (
+                typeof WeixinJSBridge == "object" &&
+                typeof WeixinJSBridge.invoke == "function"
+              ) {
+                handleFontSize();
+              } else {
+                if (document.addEventListener) {
+                  document.addEventListener("WeixinJSBridgeReady", handleFontSize, false);
+                } else if (document.attachEvent) {
+                  document.attachEvent("WeixinJSBridgeReady", handleFontSize);
+                  document.attachEvent("onWeixinJSBridgeReady", handleFontSize);
+                }
+              }
+              function handleFontSize() {
+                // 设置网页字体为默认大小
+                WeixinJSBridge.invoke("setFontSizeCallback", { fontSize: 0 });
+                // 重写设置网页字体大小的事件
+                WeixinJSBridge.on("menu:setfont", function () {
+                  WeixinJSBridge.invoke("setFontSizeCallback", { fontSize: 0 });
+                });
+              }
+            }
+        </script><script>
+            setTimeout(function() {
+              // 腾讯地图定位组件
+              var geolocation = document.createElement('script');
+              geolocation.type = 'text/javascript';
+              geolocation.async = true;
+              geolocation.src = "https://mapapi.qq.com/web/mapComponents/geoLocation/v/geolocation.min.js";
+              document.getElementsByTagName('body')[0].appendChild(geolocation);
+
+              // 腾讯云cos文件预览sdk
+              var cosDocumentPreviewSDK = document.createElement('script');
+              cosDocumentPreviewSDK.type = 'text/javascript';
+              cosDocumentPreviewSDK.async = true;
+              cosDocumentPreviewSDK.src = "https://cloudcache.tencentcs.com/operation/dianshi/other/cos-document-preview-sdk-v0.1.1.9128e51973a36da64dfb242554132ab7f86a5125.js";
+              document.getElementsByTagName('body')[0].appendChild(cosDocumentPreviewSDK);
+
+            }, 500)
+        </script></html>

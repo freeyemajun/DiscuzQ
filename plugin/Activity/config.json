@@ -1,0 +1,16 @@
+{
+    "name_cn":"活动报名",
+    "name_en":"activity",
+    "description":"帖子类型里添加报名插件",
+    "type":1,
+    "app_id":"612f4217ae890",
+    "version":"v1.0.1",
+    "status":1,
+    "icon":"https:\/\/discuz.chat\/dzq-img\/active.png",
+    "filter_enable":true,
+    "author":{
+        "name":"腾讯科技（深圳）有限公司",
+        "email":"coralchu@tencent.com"
+    },
+    "busi":"Plugin\\Activity\\ActivityBusi"
+}

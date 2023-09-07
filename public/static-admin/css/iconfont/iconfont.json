@@ -1,0 +1,86 @@
+{
+  "id": "2692600",
+  "name": "icon",
+  "font_family": "iconfont",
+  "css_prefix_text": "icon-",
+  "description": "",
+  "glyphs": [
+    {
+      "icon_id": "25829702",
+      "name": "server",
+      "font_class": "server1-copy",
+      "unicode": "eac3",
+      "unicode_decimal": 60099
+    },
+    {
+      "icon_id": "1194671",
+      "name": "server",
+      "font_class": "server",
+      "unicode": "e670",
+      "unicode_decimal": 58992
+    },
+    {
+      "icon_id": "25477641",
+      "name": "插件",
+      "font_class": "chajian-copy",
+      "unicode": "eac2",
+      "unicode_decimal": 60098
+    },
+    {
+      "icon_id": "25167492",
+      "name": "商店",
+      "font_class": "shangdian1-copy",
+      "unicode": "eac0",
+      "unicode_decimal": 60096
+    },
+    {
+      "icon_id": "4141855",
+      "name": "加速xhdpi",
+      "font_class": "jiasuxhdpi",
+      "unicode": "e650",
+      "unicode_decimal": 58960
+    },
+    {
+      "icon_id": "13983883",
+      "name": "rocket",
+      "font_class": "yijiasu",
+      "unicode": "e60f",
+      "unicode_decimal": 58895
+    },
+    {
+      "icon_id": "12547697",
+      "name": "CDN加速",
+      "font_class": "CDNjiasu",
+      "unicode": "e6c3",
+      "unicode_decimal": 59075
+    },
+    {
+      "icon_id": "479486",
+      "name": "向上",
+      "font_class": "xiangshang",
+      "unicode": "e635",
+      "unicode_decimal": 58933
+    },
+    {
+      "icon_id": "25167671",
+      "name": "向下",
+      "font_class": "xiangxia-copy",
+      "unicode": "eac1",
+      "unicode_decimal": 60097
+    },
+    {
+      "icon_id": "5387382",
+      "name": "导入",
+      "font_class": "daoru",
+      "unicode": "eabf",
+      "unicode_decimal": 60095
+    },
+    {
+      "icon_id": "15685683",
+      "name": "导入",
+      "font_class": "daoru1",
+      "unicode": "e6f7",
+      "unicode_decimal": 59127
+    }
+  ]
+}

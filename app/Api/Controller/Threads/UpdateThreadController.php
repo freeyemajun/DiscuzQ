@@ -1,0 +1,442 @@
+<?php
+
+/**
+ * Copyright (C) 2020 Tencent Cloud.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+namespace App\Api\Controller\Threads;
+
+use App\Common\CacheKey;
+use App\Common\Platform;
+use App\Common\ResponseCode;
+use App\Models\Category;
+use App\Models\Group;
+use App\Models\Order;
+use App\Models\Post;
+use App\Models\Thread;
+use App\Models\ThreadTag;
+use App\Models\ThreadTom;
+use App\Models\ThreadVote;
+use App\Models\ThreadVoteSubitem;
+use App\Models\ThreadVoteUser;
+use App\Models\User;
+use App\Modules\ThreadTom\TomConfig;
+use App\Notifications\Messages\Database\PostMessage;
+use App\Notifications\System;
+use App\Repositories\UserRepository;
+use App\Settings\SettingsRepository;
+use Carbon\Carbon;
+use Discuz\Base\DzqCache;
+use Discuz\Base\DzqController;
+use Discuz\Common\Utils;
+
+class UpdateThreadController extends DzqController
+{
+    use ThreadTrait;
+
+    private $thread;
+
+    protected function checkRequestPermissions(UserRepository $userRepo)
+    {
+        $this->checkThreadPluginAuth($userRepo);
+        $this->thread = Thread::query()
+            ->where(['id' => $this->inPut('threadId')])
+            ->whereNull('deleted_at')
+            ->first();
+        if (!$this->thread) {
+            $this->outPut(ResponseCode::RESOURCE_NOT_FOUND, '帖子不存在');
+        }
+
+        $captcha = [
+            'captchaTicket' => $this->inPut('captchaTicket'),
+            'captchaRandStr' => $this->inPut('captchaRandStr'),
+            'ip' => ip($this->request->getServerParams())
+        ];
+        $userRepo->checkPublishPermission($this->user, $captcha);
+
+        return $userRepo->canEditThread($this->user, $this->thread);
+    }
+
+    public function main()
+    {
+        $threadId = $this->inPut('threadId');
+        $thread = $this->thread;
+        $post = Post::query()
+            ->where(['thread_id' => $threadId, 'is_first' => Post::FIRST_YES])
+            ->whereNull('deleted_at')
+            ->first();
+        if (empty($post)) {
+            $this->outPut(ResponseCode::RESOURCE_NOT_FOUND, '帖子详情不存在');
+        }
+        $oldContent = $post->content;
+        $oldTitle = $thread->title;
+        $result = $this->updateThread($thread, $post);
+
+        if (
+            ($thread->user_id != $this->user->id)
+            && ($oldContent != $post->content || $oldTitle != $result['title'])
+            && $thread->user
+        ) {
+            $messagePost = $post;
+            if (!empty($oldTitle) && $messagePost->is_first == Post::FIRST_YES) {
+                $tags = Post::getContentTags($oldContent);
+                $messagePost->content = $oldTitle . $tags;
+                $messagePost->content = Post::addTagToThreadContent($messagePost->thread_id, $messagePost->content);
+            } else {
+                $messagePost = Post::changeNotifitionPostContent($messagePost);
+            }
+
+            $thread->user->notify(new System(PostMessage::class, $this->user, [
+                'message' => $messagePost->content,
+                'post' => $messagePost,
+                'notify_type' => Post::NOTIFY_EDIT_CONTENT_TYPE,
+            ]));
+        }
+
+        $this->outPut(ResponseCode::SUCCESS, '', $result);
+    }
+
+    private function updateThread($thread, $post)
+    {
+        $db = $this->getDB();
+        $db->beginTransaction();
+        try {
+            $result = $this->executeEloquent($thread, $post);
+            $db->commit();
+            return $result;
+        } catch (\Exception $e) {
+            $db->rollBack();
+            $this->info('updateThread_error_' . $this->user->id, $e->getMessage());
+            $this->outPut(ResponseCode::DB_ERROR, $e->getMessage());
+        }
+    }
+
+    private function executeEloquent($thread, $post)
+    {
+        $content = $this->inPut('content');//非必填项
+
+        if (!empty($content['text'])) {
+            $content['text'] = $this->optimizeEmoji($content['text']);
+            //处理@
+            $content['text'] = $this->renderCall($content['text']);
+        }
+
+        //更新thread数据
+        $this->saveThread($thread, $content);
+        //插入话题
+        $content = $this->saveTopic($thread, $content);
+        //更新post数据
+        $this->savePost($post, $content);
+        $parsedContent = $post->content;
+        //发帖@用户
+        $this->sendNews($thread, $post);
+        unset($post->isChange);
+        //更新tom数据
+        $tomJsons = $this->saveThreadTom($thread, $content, $post);
+        $post->content = $parsedContent;
+        return $this->getResult($thread, $post, $tomJsons);
+    }
+
+    private function saveThread($thread, &$content)
+    {
+        $title = $this->inPut('title');//非必填项
+        $categoryId = $this->inPut('categoryId');
+        $price = floatval($this->inPut('price'));
+        $attachmentPrice = floatval($this->inPut('attachmentPrice'));
+        $freeWords = floatval($this->inPut('freeWords'));
+        $position = $this->inPut('position');
+        $isAnonymous = $this->inPut('anonymous');
+        $isDraft = $this->inPut('draft');
+        //如果原帖是已发布的情况下，update 不允许在将帖子状态存为草稿
+        /*
+        if($thread->is_draft == Thread::IS_NOT_DRAFT && !empty($isDraft)){
+            $this->outPut(ResponseCode::INVALID_PARAMETER, '该帖已发布，不允许再存为草稿');
+        }
+        */
+
+        // 包含 红包 的帖子在已发布的情况下，再次编辑；条件：存在对应的 order 为 已支付的情况
+        empty($content['indexes']) && $content['indexes'] = [];
+        if ($this->needPay($content['indexes']) && $isDraft == Thread::IS_NOT_DRAFT) {
+            $order = $this->getOrderInfo($thread);
+            if ($order) {
+                if ($order->status != Order::ORDER_STATUS_PAID) {
+                    $this->outPut(ResponseCode::INVALID_PARAMETER, '订单未支付，无法发布');
+                }
+            } else {
+                // 已发布的没有 “红包/悬赏” 的帖子，不允许重新编辑时，增加 “红包/悬赏” 属性
+                if ($thread->is_draft == 0) {
+                    $tags = ThreadTag::query()->where('thread_id', $thread->id)->pluck('tag')->toArray();
+                    $intersect_tags = array_intersect([ThreadTag::RED_PACKET, ThreadTag::REWARD], $tags);
+                    if (empty($intersect_tags)) {
+                        $this->outPut(ResponseCode::INVALID_PARAMETER, '已发布的帖子，不允许添加 红包/悬赏');
+                    }
+                }
+                $this->outPut(ResponseCode::INVALID_PARAMETER, '包含红包/悬赏帖，需要创建对应的订单');
+            }
+        }
+
+        if ($price > 0 || $attachmentPrice > 0) {
+            $this->checkThreadPrice($price, $attachmentPrice);
+        }
+
+        $thread->title = $title;
+        $originalCategoryId = $thread->category_id;
+        !empty($categoryId) && $thread->category_id = $categoryId;
+        if (!empty($position)) {
+            $thread->longitude = $position['longitude'] ?? 0;
+            $thread->latitude = $position['latitude'] ?? 0;
+            $thread->address = $position['address'] ?? '';
+            $thread->location = $position['location'] ?? '';
+        }
+
+        $thread->price = $price > 0 ? ($price) : 0;
+        $thread->attachment_price = $attachmentPrice > 0 ? $attachmentPrice : 0;
+        $thread->free_words = $freeWords > 0 ? $freeWords : 0;
+
+        [$newTitle, $newContent] = $this->boolApproved($title, $content['text'], $isApproved);
+        $content['text'] = $newContent;
+        !empty($title) && $thread->title = $newTitle;
+        if ($isApproved) {
+            $thread->is_approved = Thread::BOOL_NO;
+        } else {
+            $thread->is_approved = Thread::BOOL_YES;
+        }
+
+        if ($isDraft) {
+            $thread->is_draft = Thread::IS_DRAFT;
+        } else {
+            if ($thread->is_draft) {
+                $thread->created_at = date('Y-m-d H:i:m', time());
+            }
+            $thread->is_draft = Thread::IS_NOT_DRAFT;
+        }
+        if ($isAnonymous) {
+            $thread->is_anonymous = Thread::BOOL_YES;
+        } else {
+            $thread->is_anonymous = Thread::BOOL_NO;
+        }
+        if (!(bool)app(SettingsRepository::class)->get('thread_optimize') && Utils::requestFrom() != Platform::MinProgram) {
+            $thread->is_display = Thread::BOOL_NO;
+        } else {
+            $thread->is_display = Thread::BOOL_YES;
+        }
+        //设置变更时间
+        $thread->issue_at=date('Y-m-d H:i:s');
+        $thread->save();
+        if (!$isApproved && !$isDraft) {
+            $this->user->refreshThreadCount();
+            $this->user->save();
+            if ($originalCategoryId != $categoryId) {
+                Category::refreshThreadCountV3($originalCategoryId);
+            }
+            Category::refreshThreadCountV3($categoryId);
+        }
+    }
+
+    private function savePost($post, $content)
+    {
+        [$ip, $port] = $this->getIpPort();
+        if (isset($content['text'])) {
+            $post->content = $content['text'];
+        }
+        $post->ip = $ip;
+        $post->port = $port;
+        $post->is_first = Post::FIRST_YES;
+        $post->is_approved = Post::APPROVED;
+        $post->save();
+    }
+
+    private function saveThreadTom($thread, $content, $post)
+    {
+        $threadId = $thread->id;
+        $tags = [];
+        $indexes = $content['indexes'] ?? [];
+        /* 允许红包帖在已发布情况下再次编辑，相当于允许 包含 红包 的帖子，draft 为 0
+        if(!empty($content['indexes'])){
+            //针对红包帖、悬赏帖，还需要往对应的 body 中插入  draft = 1
+            $tomTypes = array_keys($content['indexes']);
+            foreach ($tomTypes as $tomType) {
+                $tomService = Arr::get(TomConfig::$map, $tomType.'.service');
+                if(constant($tomService.'::NEED_PAY')){
+                    if($this->inPut('draft') == 0){        //如果修改帖子的时候，增加了红包资料的话，那么必须要先走草稿，然后走订单，再走发布（或者简单点理解为：增加了新的红包的帖子状态，只能通过支付回调来修改帖子状态）
+                        $this->outPut(ResponseCode::INVALID_PARAMETER, '红包/悬赏红包应先存为草稿');
+                    }
+                    if ($content['indexes'][$tomType]['body']['draft'] == 0 ) {
+                        $this->outPut(ResponseCode::INVALID_PARAMETER, '红包/悬赏红包状态应为草稿');
+                    }
+                }
+            }
+        }
+        */
+        $order = $this->getOrderInfo($thread);
+        $tomJsons = $this->tomDispatcher($content, null, $thread->id, $post->id);
+        if (!empty($content['text'])) {
+            $tags[] = ['thread_id' => $thread['id'], 'tag' => TomConfig::TOM_TEXT];
+        }
+        foreach ($tomJsons as $key => $value) {
+            $tomId = $value['tomId'];
+            $operation = $value['operation'];
+            $body = $value['body'];
+            $price_type = 0;
+            $price_ids = '{}';
+            $operation != $this->DELETE_FUNC && $tags[] = ['thread_id' => $threadId, 'tag' => $value['tomId']];
+            if(($thread->attachment_price || $thread->price) && in_array($value['tomId'], TomConfig::$sub_pay_list)){
+                $price_type = 1;
+                if($thread->price > 0){
+                    $body_value = array_values($value['body']);
+                    if(!is_array($body_value[0])){
+                        $body_value[0] = [$body_value[0]];
+                    }
+                    $price_ids = json_encode($body_value[0]);
+                }else{
+                    $price_ids = !empty($indexes[$key]['body']['priceList']) && is_array($indexes[$key]['body']['priceList']) ? json_encode($indexes[$key]['body']['priceList']) : '{}';
+                }
+            }
+            switch ($operation) {
+                case $this->CREATE_FUNC:
+                    ThreadTom::query()->insert([
+                        'thread_id' => $threadId,
+                        'tom_type' => $tomId,
+                        'key' => $key,
+                        'value' => json_encode($body, 256),
+                        'status' => ThreadTom::STATUS_ACTIVE,
+                        'price_type' => $price_type,
+                        'price_ids' =>  $price_ids
+                    ]);
+                    break;
+                case $this->DELETE_FUNC:
+                    ThreadTom::query()
+                        ->where(['thread_id' => $threadId, 'tom_type' => $tomId, 'status' => ThreadTom::STATUS_ACTIVE])
+                        ->update(['status' => ThreadTom::STATUS_DELETE]);
+                    $isDeleteRedOrder = $isDeleteRewardOrder = false;
+                    if (empty($order) || $order->status != Order::ORDER_STATUS_PAID) {
+                        if ($tomId == TomConfig::TOM_REDPACK) {
+                            $isDeleteRedOrder = true;
+                        }
+                        if ($tomId == TomConfig::TOM_REWARD) {
+                            $isDeleteRewardOrder = true;
+                        }
+                    }
+                    $this->delRedRelations($threadId, $isDeleteRedOrder, $isDeleteRewardOrder);
+                    break;
+                case $this->UPDATE_FUNC:
+                    ThreadTom::query()
+                        ->where(['thread_id' => $threadId, 'tom_type' => $tomId, 'key' => $key, 'status' => ThreadTom::STATUS_ACTIVE])
+                        ->update(['value' => json_encode($body, 256), 'price_type' => $price_type, 'price_ids' =>  $price_ids]);
+                    break;
+                default:
+                    $this->outPut(ResponseCode::UNKNOWN_ERROR, 'operation ' . $operation . ' not exist.');
+            }
+        }
+        $this->delRedundancyPlugins($threadId, $tomJsons);
+        $this->saveThreadTag($threadId, $tags);
+        return $tomJsons;
+    }
+
+    //删除掉前端未提交的的插件和标签数据
+    private function delRedundancyPlugins($threadId, $tomJsons)
+    {
+        $order = $this->getRedOrderInfo($threadId);
+        $tomList = ThreadTom::query()
+            ->select('tom_type', 'key')
+            ->where(['thread_id' => $threadId, 'status' => ThreadTom::STATUS_ACTIVE])->get();
+        $keys = [];
+        $isDeleteRedOrder = $isDeleteRewardOrder = false;
+        foreach ($tomList as $item) {
+            if (empty($tomJsons[$item['key']])) {
+                if (in_array($item['tom_type'], [TomConfig::TOM_REDPACK, TomConfig::TOM_REWARD]) &&
+                    (empty($order) || $order->status != Order::ORDER_STATUS_PAID)
+                ) {
+                    if ($item['tom_type'] == TomConfig::TOM_REDPACK) {
+                        $isDeleteRedOrder = true;
+                    }
+                    if ($item['tom_type'] == TomConfig::TOM_REWARD) {
+                        $isDeleteRewardOrder = true;
+                    }
+                }
+                $keys[] = $item['key'];
+            }
+        }
+
+        ThreadTom::query()
+            ->select('tom_type', 'key')
+            ->where(['thread_id' => $threadId])
+            ->whereIn('key', $keys)->delete();
+        //针对其他类型，再做特殊处理。如投票帖，做软删除
+        foreach ($keys as $val) {
+            switch ($val) {
+                case TomConfig::TOM_VOTE:
+                    $this->getDB()->beginTransaction();
+                    //目前是考虑一个帖子只有一个投票，暂时可以用 first
+                    $thread_vote = ThreadVote::query()->where('thread_id', $threadId)->whereNull('deleted_at')->first();
+                    $thread_vote->deleted_at = Carbon::now();
+                    $res = $thread_vote->save();
+                    if ($res === false) {
+                        $this->getDB()->rollBack();
+                        $this->outPut(ResponseCode::INTERNAL_ERROR, '删除原投票出错');
+                    }
+                    $res = ThreadVoteSubitem::query()->where('thread_vote_id', $thread_vote->id)->whereNull('deleted_at')->update(['deleted_at' => $thread_vote->deleted_at]);
+                    if ($res === false) {
+                        $this->getDB()->rollBack();
+                        $this->outPut(ResponseCode::INTERNAL_ERROR, '删除原投票选项出错');
+                    }
+                    //这里还要将之前的投票记录删除掉
+                    $res = ThreadVoteUser::query()->where('thread_id', $threadId)->delete();
+                    if ($res === false) {
+                        $this->getDB()->rollBack();
+                        $this->outPut(ResponseCode::INTERNAL_ERROR, '删除原投票记录出错');
+                    }
+                    $this->getDB()->commit();
+                    break;
+
+                default:
+                    break;
+            }
+        }
+
+
+
+        $this->delRedRelations($threadId, $isDeleteRedOrder, $isDeleteRewardOrder);
+    }
+
+    private function saveThreadTag($threadId, $tags)
+    {
+        ThreadTag::query()->where('thread_id', $threadId)->delete();
+        ThreadTag::query()->insert($tags);
+    }
+
+    private function getResult($thread, $post, $tomJsons)
+    {
+        $user = User::query()->where('id', $thread->user_id)->first();
+        $group = Group::getGroup($user->id);
+        $tags = [];
+        if (!empty($tomJsons)) {
+            foreach ($tomJsons as $val) {
+                $tags[]['tag'] = $val['tomId'];
+            }
+        }
+        return $this->packThreadDetail($user, $group, $thread, $post, $tomJsons, true, $tags);
+    }
+
+    public function suffixClearCache($user)
+    {
+        CacheKey::delListCache();
+        $threadId = $this->inPut('threadId');
+        DzqCache::delHashKey(CacheKey::LIST_THREADS_V3_THREADS, $threadId);
+        DzqCache::delHashKey(CacheKey::LIST_THREADS_V3_POSTS, $threadId);
+        DzqCache::delHashKey(CacheKey::LIST_THREADS_V3_TAGS, $threadId);
+        DzqCache::delHashKey(CacheKey::LIST_THREADS_V3_TOMS, $threadId);
+    }
+}

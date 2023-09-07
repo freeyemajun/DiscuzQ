@@ -1,0 +1,10 @@
+{
+    "name_cn":"内容导入",
+    "name_en":"import",
+    "description":"向站点导入其他平台内容",
+    "type":2,
+    "app_id":"612f4217ae770",
+    "version":"v1.0.1",
+    "status":1,
+    "icon":"https:\/\/discuz.chat\/dzq-img\/active.png"
+}
