@@ -390,11 +390,11 @@
         -webkit-animation-fill-mode: both;
         animation-fill-mode: both;
 
-        -webkit-animation-duration: 0.5s;
-        animation-duration: 0.5s;
+        -webkit-animation-duration: 0.1s;
+        animation-duration: 0.1s;
 
-        animation-delay: 1.7s;
-        -webkit-animation-delay: 1.7s;
+        animation-delay: 0.1s;
+        -webkit-animation-delay: 0.0s;
       }
       @-webkit-keyframes fadeIn {
         0% {opacity: 0}

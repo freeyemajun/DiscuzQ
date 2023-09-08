@@ -1,37 +1,18 @@
-<p align="center"><img src="https://www.discuz.net/static/image/common/logo.svg"></p>
+<p align="center"><a href="https://discuzq.icu/" target="_blank"><img src="https://s1.imagehub.cc/images/2023/09/06/default-favicon.png"></a></p>
 
+## **[捐赠帮助免费开源的 DiscuzQ 持续更新](https://discuzq.icu)**
 
-## 关于 Discuz! Q
+## [《服务端安装手册》](https://discuzq.icu/)  [《开发文档》](https://discuzq.icu/) 
 
-**[Discuz Q 官方](https://discuz.chat)**
+![okM1.png](https://s1.imagehub.cc/images/2023/09/07/okM1.png)
+![okPC1.png](https://s1.imagehub.cc/images/2023/09/07/okPC1.png)
+![ok1.png](https://s1.imagehub.cc/images/2023/09/07/ok1.png)
 
-## 安装方法
+## 感谢开源贡献者：
 
-服务器环境需求为： **PHP 7.2.5+** 和 **MySQL 5.7+**, 并且需要安装 [Composer](https://getcomposer.org/)。
+`DiscuzQ原始团队（奶罩、小虫、老胡、九州、超超、国文、猛子、于雷、玉薇、梦如、李娜、唯希、单新、亚楠、冬冬、海龙、张浩、周舟、海天、静宇、张洁、琪瑶、菲菲、张杰、吴茜、锶佳、真人、一姐、张瑶、媛媛、王研、史策...等）`，`盛想团队张安冠`，`Nahida`
 
-## 内测下载 Discuz! Q
-
-首先注册[腾讯云帐号](https://cloud.tencent.com)并[实名认证](https://console.cloud.tencent.com/developer/auth)，然后在[API密钥管理](https://console.cloud.tencent.com/cam/capi)处新建一个密钥，运行列命令可下载 Discuz Q
-
-```
-composer config -g http-basic.cloud.discuz.chat ${QCLOUD_SECRET_ID} ${QCLOUD_SECRET_KEY}
-
-composer create-project --prefer-dist qcloud/discuz --repository=https://cloud.discuz.chat
-```
-
-## 正式发布后下载 Discuz! Q
-
-```
-composer create-project --prefer-dist qcloud/discuz
-
-cd resources/frame
-npm install
-npm run build
-```
-
-## 感谢
-
-### 背景故事
+## 背景故事
 
 `Discuz! Q`项目由于是从 0 到 1，介于我们的目标，如果从第一行代码开始编写，是极为庞大的工程。想想`Discuz!X`，代码量依赖 10 多年的时间的积累，才完善出各种工具类、自己的框架及插件机制等。
 
@@ -62,5 +43,3 @@ npm run build
 [Vant](https://youzan.github.io/vant/#/zh-CN/)
 
 [element-ui](https://element.eleme.cn/#/zh-CN)
-
-
