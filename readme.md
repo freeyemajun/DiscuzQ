@@ -5,12 +5,13 @@
 ## [《服务端安装手册》](https://discuzq.icu/)  [《开发文档》](https://discuzq.icu/) 
 
 ![okM1.png](https://s1.imagehub.cc/images/2023/09/07/okM1.png)
-![okPC1.png](https://s1.imagehub.cc/images/2023/09/07/okPC1.png)
+![okPC1.png](https://s1.imagehub.cc/images/2023/09/10/okPC1.png)
 ![ok1.png](https://s1.imagehub.cc/images/2023/09/07/ok1.png)
+![OKmini.gif](https://s1.imagehub.cc/images/2023/09/10/OKmini.gif)
 
-## 感谢开源贡献者：
+## 开源贡献者：
 
-`DiscuzQ原始团队（奶罩、小虫、老胡、九州、超超、国文、猛子、于雷、玉薇、梦如、李娜、唯希、单新、亚楠、冬冬、海龙、张浩、周舟、海天、静宇、张洁、琪瑶、菲菲、张杰、吴茜、锶佳、真人、一姐、张瑶、媛媛、王研、史策...等）`，`盛想团队张安冠`，`Nahida`
+`DiscuzQ原始团队（奶罩、小虫、老胡、九州、超超、国文、猛子、于雷、玉薇、梦如、李娜、唯希、单新、亚楠、冬冬、海龙、张浩、周舟、海天、静宇、张洁、琪瑶、菲菲、张杰、吴茜、锶佳、真人、一姐、张瑶、媛媛、王研、史策...等）`，`盛想团队张安冠`，`Nahida`，`野马君`
 
 ## 背景故事
 
