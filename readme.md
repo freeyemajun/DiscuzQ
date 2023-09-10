@@ -7,7 +7,7 @@
 ![okM1.png](https://s1.imagehub.cc/images/2023/09/07/okM1.png)
 ![okPC1.png](https://s1.imagehub.cc/images/2023/09/10/okPC1.png)
 ![ok1.png](https://s1.imagehub.cc/images/2023/09/07/ok1.png)
-![OKmini.gif](https://s1.imagehub.cc/images/2023/09/10/OKmini.gif)
+![OKmini20230910.gif](https://s1.imagehub.cc/images/2023/09/10/OKmini20230910.gif)
 
 ## 开源贡献者：
 
