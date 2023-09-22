@@ -2,9 +2,9 @@
 
 
 @section('content')
-<h2>安装 Discuz! Q</h2>
+<h2>安装 DiscuzQ</h2>
 
-<p>请查看安装文档，根据文档完成安装 <a href="https://discuzq.icu target="_blank">Discuz! Q</a>.</p>
+<p>请查看安装文档，根据文档完成安装 <a href="https://discuzq.icu" target="_blank">DiscuzQ</a></p>
 
 <form method="post">
   <div id="error" style="display:none"></div>
